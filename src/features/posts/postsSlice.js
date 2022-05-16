@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSlice, nanoid } from '@reduxjs/toolkit'
 
 const initialState = [
   { id: '1', title: 'First Post!', content: 'Hello!' },
@@ -9,9 +9,35 @@ const postsSlice = createSlice({
   name: 'posts',
   initialState,
   reducers: {
-    //Here it converts those mutations into safe immutable updates internally using the Immer library
-    postAdded(state, action) {
-      state.push(action.payload)
+    //Here it converts those mutations into safe immutable updates internally using the Immer library.
+
+    /* 
+      If an action needs to contain a unique ID or some other random value, always generate that first and put it in the action object. 
+      Reducers should never calculate random values, because that makes the results unpredictable.
+    */
+
+    /* Fortunately, createSlice lets us define a "prepare callback" function when we write a reducer.
+      The "prepare callback" function can take multiple arguments, generate random values like unique IDs,
+      and run whatever other synchronous logic is needed to decide what values go into the action object.
+      It should then return an object with the `payload` field inside.
+      (The return object may also contain a `meta` field, which can be used to add extra descriptive values to the action, 
+      and an `error` field, which should be a boolean indicating whether this action represents some kind of an error.)
+    */
+   
+    //More info: https://redux.js.org/tutorials/essentials/part-4-using-data#preparing-action-payloads
+    postAdded: {
+      reducer(state, action) {
+        state.push(action.payload)
+      },
+      prepare(title, content) {
+        return {
+          payload: {
+            id: nanoid(),
+            title,
+            content,
+          },
+        }
+      },
     },
     postUpdated(state, action) {
       const { id, title, content } = action.payload

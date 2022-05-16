@@ -22,13 +22,7 @@ export const AddPostForm = () => {
         3-The Redux store told the UI that some data had changed
         4-The posts list read the updated posts array, and re-rendered itself to show the new post 
       */
-      dispatch(
-        postAdded({
-          id: nanoid(),
-          title,
-          content
-        })
-      )
+        dispatch(postAdded(title, content))
 
       setTitle('')
       setContent('')
@@ -44,6 +38,7 @@ export const AddPostForm = () => {
           type="text"
           id="postTitle"
           name="postTitle"
+          placeholder="What's on your mind?"
           value={title}
           onChange={onTitleChanged}
         />
