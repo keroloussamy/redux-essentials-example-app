@@ -2,13 +2,14 @@ import React from 'react'
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { PostAuthor } from './PostAuthor'
+import { selectAllPosts } from './postsSlice'
 import { ReactionButtons } from './ReactionButtons'
 import { TimeAgo } from './TimeAgo'
 
 export const PostsList = () => {
   //React components can read data from the Redux store using the useSelector hook from the React-Redux library
   //The "selector functions" that you write will be called with the entire Redux state object as a parameter, and should return the specific data that this component needs from the store.
-  const posts = useSelector((state) => state.posts)
+  const posts = useSelector(selectAllPosts)
 
   // Sort posts in reverse chronological order by datetime string
   const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))

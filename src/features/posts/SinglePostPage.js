@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 
 import { PostAuthor } from './PostAuthor'
+import { selectPostById } from './postsSlice'
 import { ReactionButtons } from './ReactionButtons'
 import { TimeAgo } from './TimeAgo'
 
@@ -13,9 +14,7 @@ export const SinglePostPage = ({ match }) => {
     The component will re-render any time the value returned from useSelector changes to a new reference.
     So components should always try to select the smallest possible amount of data they need from the store, which will help ensure that it only renders when it actually needs to.
   */
-  const post = useSelector(state =>
-    state.posts.find(post => post.id === postId)
-  )
+  const post = useSelector((state) => selectPostById(state, postId))
 
   if (!post) {
     return (
