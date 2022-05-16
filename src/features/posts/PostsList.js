@@ -9,9 +9,11 @@ export const PostsList = () => {
   //The "selector functions" that you write will be called with the entire Redux state object as a parameter, and should return the specific data that this component needs from the store.
   const posts = useSelector((state) => state.posts)
 
+  // Sort posts in reverse chronological order by datetime string
+  const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
 
   //loop over posts
-  const renderedPosts = posts.map((post) => (
+  const renderedPosts = orderedPosts.map((post) => (
     <article className="post-excerpt" key={post.id}>
       <h3>{post.title}</h3>
       <div>
