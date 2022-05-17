@@ -1,11 +1,16 @@
-import { createSlice, nanoid } from '@reduxjs/toolkit'
-
+import { createAsyncThunk, createSlice, nanoid } from '@reduxjs/toolkit'
+import { client } from '../../api/client'
 
 const initialState = {
   posts: [],
   status: 'idle',
   error: null,
 }
+
+export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
+  const response = await client.get('/fakeApi/posts')
+  return response.data
+})
 
 const postsSlice = createSlice({
   name: 'posts',
@@ -67,6 +72,28 @@ const postsSlice = createSlice({
         existingPost.content = content
       }
     },
+  },
+  /* 
+  There are times when a slice reducer needs to respond to other actions that weren't defined as part of this slice's reducers field. 
+  We can do that using the slice 'extraReducers' field instead.
+  The extraReducers option should be a function that receives a parameter called builder. 
+  The builder object provides methods that let us define additional case reducers that will run in response to actions defined outside of the slice. 
+  We'll use builder.addCase(actionCreator, reducer) to handle each of the actions dispatched by our async thunks.
+  */
+  extraReducers(builder) {
+    builder
+      .addCase(fetchPosts.pending, (state, action) => {
+        state.status = 'loading'
+      })
+      .addCase(fetchPosts.fulfilled, (state, action) => {
+        state.status = 'succeeded'
+        // Add any fetched posts to the array
+        state.posts = state.posts.concat(action.payload)
+      })
+      .addCase(fetchPosts.rejected, (state, action) => {
+        state.status = 'failed'
+        state.error = action.error.message
+      })
   },
 })
 
