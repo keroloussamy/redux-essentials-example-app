@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { nanoid } from '@reduxjs/toolkit'
 
-import { postAdded } from './postsSlice'
+import { addNewPost } from './postsSlice'
 
 export const AddPostForm = () => {
   const [title, setTitle] = useState('')
@@ -17,24 +16,28 @@ export const AddPostForm = () => {
   const onTitleChanged = (e) => setTitle(e.target.value)
   const onContentChanged = (e) => setContent(e.target.value)
   const onAuthorChanged = e => setUserId(e.target.value)
-  
+  const [addRequestStatus, setAddRequestStatus] = useState('idle')
 
-  const onSavePostClicked = () => {
-    if (title && content) {
-      /* 
-        1-We dispatched the postAdded action containing the data for the new post entry
-        2-The posts reducer saw the postAdded action, and updated the posts array with the new entry
-        3-The Redux store told the UI that some data had changed
-        4-The posts list read the updated posts array, and re-rendered itself to show the new post 
-      */
-        dispatch(postAdded(title, content, userId))
+  const canSave =
+    [title, content, userId].every(Boolean) && addRequestStatus === 'idle'
 
-      setTitle('')
-      setContent('')
+  const onSavePostClicked = async () => {
+    if (canSave) {
+      try {
+        setAddRequestStatus('pending')
+        await dispatch(addNewPost({ title, content, user: userId })).unwrap()
+        setTitle('')
+        setContent('')
+        setUserId('')
+      } catch (err) {
+        console.error('Failed to save the post: ', err)
+      } finally {
+        setAddRequestStatus('idle')
+      }
     }
   }
 
-  const canSave = Boolean(title) && Boolean(content) && Boolean(userId)
+
 
   const usersOptions = users.map(user => (
     <option key={user.id} value={user.id}>
