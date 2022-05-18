@@ -7,6 +7,16 @@ const initialState = {
   error: null,
 }
 
+/*
+-First of all when we need to make side tasks/async tasks/unpure functions we should make it out of our reducers.
+-So when we need to call api we will make it on a diffrent function out of our reducers.
+-We can use something called createAsyncThunk it will help with alot of staff.
+-createAsyncThunk take two parameters typePrefix(prefix before ecah type) & payloadCreater(a callback function)
+-createAsyncThunk create 3 action types (pending, fulfilled, rejected) and add before each one the typePrefix to make the action type like `posts/fetchPosts/fulfilled` 
+-createAsyncThunk create 3 action types using something called ActionCreator it takes the actionType and callback function that takes the payload and return the payload&type/meta. but you don't have to do something with it.
+-When you dispatch the createAsyncThunk it will dispatch each action from the 3 actions automaticly.
+-So if you want to do something on each action from the 3, you can add them on the extraReducers, because extraReducers only have the actions that doesn't exist on the Slice like here.
+*/
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
   const response = await client.get('/fakeApi/posts')
   return response.data
