@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
 import { client } from '../../api/client'
 
 const initialState = {
@@ -135,3 +135,17 @@ export const selectAllPosts = (state) => state.posts.posts
 
 export const selectPostById = (state, postId) =>
   state.posts.posts.find((post) => post.id === postId)
+
+
+/*
+  Memoizing Selector Functions
+  -What we really need is a way to only calculate the new filtered array if either state.posts or userId have changed. 
+   If they haven't changed, we want to return the same filtered array reference as the last time.
+  -This idea is called "memoization". We want to save a previous set of inputs and the calculated result,
+   and if the inputs are the same, return the previous result instead of recalculating it again.
+  -createSelector function that generates memoized selectors that will only recalculate results when the inputs change. 
+*/
+export const selectPostsByUser = createSelector(
+  [selectAllPosts, (state, userId) => userId],
+  (posts, userId) => posts.filter(post => post.user === userId)
+)
