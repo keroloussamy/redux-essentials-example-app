@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { PostAuthor } from './PostAuthor'
 import { useGetPostsQuery } from '../api/apiSlice'
@@ -28,19 +28,26 @@ let PostExcerpt = ({ post }) => {
 
 export const PostsList = () => {
   const {
-    data: posts,
+    data: posts = [], //give posts a default empty array in case it's undefined, so that we always have an array to sort on.
     isLoading,
     isSuccess,
     isError,
     error,
   } = useGetPostsQuery()
 
+  const sortedPosts = useMemo(() => { //To avoid re-sorting on every rerender, we can do the sorting in a useMemo() hook.
+    const sortedPosts = posts.slice()
+    // Sort posts in descending chronological order
+    sortedPosts.sort((a, b) => b.date.localeCompare(a.date))
+    return sortedPosts
+  }, [posts])
+
   let content
 
   if (isLoading) {
     content = <Spinner text="Loading..." />
   } else if (isSuccess) {
-    content = posts.map((post) => <PostExcerpt key={post.id} post={post} />)
+    content = sortedPosts.map((post) => <PostExcerpt key={post.id} post={post} />)
   } else if (isError) {
     content = <div>{error.toString()}</div>
   }
