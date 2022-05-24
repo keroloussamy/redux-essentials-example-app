@@ -1,11 +1,21 @@
-import { createAsyncThunk, createSelector, createSlice } from '@reduxjs/toolkit'
+import { createAsyncThunk, createSelector, createSlice, createEntityAdapter } from '@reduxjs/toolkit'
 import { client } from '../../api/client'
 
-const initialState = {
-  posts: [],
+/*
+ we want to keep an array of all post IDs sorted with the newest post first, 
+ so we pass in a sortComparer function that will sort newer items to the front based on the post.date field.
+*/
+const postsAdapter = createEntityAdapter({
+  sortComparer: (a, b) => b.date.localeCompare(a.date),
+})
+
+
+/* The adapter object has a getInitialState function that generates an empty {ids: [], entities: {}} object.
+ You can pass in more fields to getInitialState, and those will be merged in. Like status and error here */
+const initialState = postsAdapter.getInitialState({
   status: 'idle',
   error: null,
-}
+})
 
 /*
 -First of all when we need to make side tasks/async tasks/unpure functions we should make it out of our reducers.
@@ -77,16 +87,21 @@ const postsSlice = createSlice({
       },
     },
     */
+    
+    
+    /*
+    Now that our posts are being kept as a lookup table in state.entities, we can change our reactionAdded and postUpdated reducers to directly look up the right posts by their IDs, instead of having to loop over the old posts array.
+    */
     reactionAdded(state, action) {
       const { postId, reaction } = action.payload
-      const existingPost = state.posts.find((post) => post.id === postId)
+      const existingPost = state.entities[postId]
       if (existingPost) {
         existingPost.reactions[reaction]++
       }
     },
     postUpdated(state, action) {
       const { id, title, content } = action.payload
-      const existingPost = state.posts.find((post) => post.id === id)
+      const existingPost = state.entities[id]
       if (existingPost) {
         existingPost.title = title
         existingPost.content = content
@@ -105,18 +120,19 @@ const postsSlice = createSlice({
       .addCase(fetchPosts.pending, (state, action) => {
         state.status = 'loading'
       })
+      /*
+      When we receive the fetchPosts.fulfilled action, we can use the postsAdapter.upsertMany function to add all of the incoming posts to the state, by passing in the draft state and the array of posts in action.payload. If there's any items in action.payload that already existing in our state, the upsertMany function will merge them together based on matching IDs.
+      */
       .addCase(fetchPosts.fulfilled, (state, action) => {
         state.status = 'succeeded'
         // Add any fetched posts to the array
-        state.posts = state.posts.concat(action.payload)
+        postsAdapter.upsertMany(state, action.payload)
       })
       .addCase(fetchPosts.rejected, (state, action) => {
         state.status = 'failed'
         state.error = action.error.message
       })
-      .addCase(addNewPost.fulfilled, (state, action) => {
-        state.posts.push(action.payload)
-      })
+      .addCase(addNewPost.fulfilled, postsAdapter.addOne)
   },
 })
 
@@ -129,12 +145,19 @@ It would be nice if we didn't have to keep rewriting our components every time w
 One way to avoid this is to define reusable selector functions in the slice files,
 and have the components use those selectors to extract the data they need instead of repeating the selector logic in each component. 
 That way, if we do change our state structure again, we only need to update the code in the slice file
-*/
 
 export const selectAllPosts = (state) => state.posts.posts
 
 export const selectPostById = (state, postId) =>
   state.posts.posts.find((post) => post.id === postId)
+*/
+
+
+  export const {
+    selectAll: selectAllPosts, //Just rename
+    selectById: selectPostById,
+    selectIds: selectPostIds,
+  } = postsAdapter.getSelectors((state) => state.posts)
 
 
 /*
