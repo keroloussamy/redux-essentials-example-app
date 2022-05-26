@@ -20,6 +20,13 @@ export const apiSlice = createApi({
       }),
       invalidatesTags: ['Post'] //With this tag now when you add a new post the getPosts will run automaticly.
     }),
+    editPost: builder.mutation({
+      query: post => ({
+        url: `/posts/${post.id}`,
+        method: 'PATCH',
+        body: post
+      })
+    })
   }),
 })
 
@@ -27,4 +34,5 @@ export const {
   useGetPostsQuery,
   useGetPostQuery,
   useAddNewPostMutation,
+  useEditPostMutation
 } = apiSlice
